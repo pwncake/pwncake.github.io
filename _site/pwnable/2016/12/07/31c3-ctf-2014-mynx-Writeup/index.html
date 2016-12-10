@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>
+    
+      31C3 CTF mynx Writeup &middot; Shall we play a game?
+    
+  </title>
+
+  <!-- CSS -->
+  <!--
+  <link rel="stylesheet" href="/public/css/poole.css">
+  <link rel="stylesheet" href="/public/css/syntax.css">
+  <link rel="stylesheet" href="/public/css/lanyon.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Serif:400,400italic,700%7CPT+Sans:400">
+  -->
+  <link rel="stylesheet" href="/public/css/main.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Serif:400,400italic,700%7CPT+Sans:400">
+
+  <!-- Icons -->
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/public/apple-touch-icon-precomposed.png">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+
+  <!-- RSS -->
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="/atom.xml">
+</head>
+
+
+  <body class="theme-base-08">
+    <!-- Target for toggling the sidebar `.sidebar-checkbox` is for regular
+     styles, `#sidebar-checkbox` for behavior. -->
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+<!-- Toggleable sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-item">
+    <p>A passionate <strong>developer and hacker group</strong>, cumchuk cumchuk.</p>
+  
+  
+    
+    
+    
+    <div class="sidebar-personal-info-section">
+      <p> Follow me: 
+      
+      
+      
+      <a href="https://www.linkedin.com/in/pwncake">
+        <i class="fa fa-linkedin" aria-hidden="true"></i>
+      </a>
+      
+      |
+      
+      
+      
+      <a href="https://github.com/pwncake">
+        <i class="fa fa-github" aria-hidden="true"></i>
+      </a>
+      
+      |
+      
+      
+      
+      <a href="https://twitter.com/pwncake">
+        <i class="fa fa-twitter" aria-hidden="true"></i>
+      </a>
+      
+      |
+      
+      
+      
+      <a href="pwncake.io@gmail.com">
+        <i class="fa fa-envelope" aria-hidden="true"></i>
+      </a>
+      
+      
+      
+      </p>
+    </div>
+    
+  </div>
+  <nav class="sidebar-nav">
+    
+      
+      
+      
+
+      
+
+      <span class="">
+        <a class="sidebar-nav-item " href="/">
+          Home
+        </a>
+
+        
+      </span>
+
+    
+      
+      
+      
+
+      
+
+      <span class="">
+        <a class="sidebar-nav-item " href="/about/">
+          About
+        </a>
+
+        
+      </span>
+
+    
+      
+      
+      
+
+      
+
+      <span class="foldable">
+        <a class="sidebar-nav-item " href="/blog/">
+          Blog
+        </a>
+
+        
+          
+            
+            
+            
+              <a class="sidebar-nav-item sidebar-nav-item-sub " href="/blog/categories/">
+                Categories
+              </a>
+          
+        
+          
+            
+            
+            
+              <a class="sidebar-nav-item sidebar-nav-item-sub " href="/blog/tags/">
+                Tags
+              </a>
+          
+        
+      </span>
+
+    
+      
+      
+      
+
+      
+
+      <span class="">
+        <a class="sidebar-nav-item " href="https://github.com/develacker">
+          Github Project
+        </a>
+
+        
+      </span>
+
+    
+
+    <span class="sidebar-nav-item">Currently v1.0.0</span>
+  </nav>
+
+  <div class="sidebar-item">
+    <p>
+      &copy; 2016. All rights reserved.
+    </p>
+  </div>
+</div>
+
+    <!-- Wrap is the content to shift when toggling the sidebar. We wrap the
+         content to avoid any CSS collisions with our real content. -->
+    <div class="wrap">
+      <div class="masthead">
+        <div class="container">
+          <h3 class="masthead-title">
+            <a href="/" title="Home">Shall we play a game?</a>
+            <small>pwncake's blog</small>
+          </h3>
+        </div>
+      </div>
+
+      <div class="container content">
+        <div class="post">
+  <h1 class="post-title">31C3 CTF mynx Writeup</h1>
+  <span class="post-date">07 Dec 2016</span>
+  <h1 id="mynx">mynx</h1>
+
+<p><strong>Category:</strong> pwnable</p>
+
+<p><strong>Points:</strong> 30</p>
+
+<p><strong>Type:</strong> Off-by-One, Custom Heap Implementation</p>
+
+<p><strong>Description:</strong></p>
+
+<blockquote>
+  <p>mynx running on 188.40.18.80 1234</p>
+</blockquote>
+
+<h2 id="custom-heap-implementation">Custom Heap Implementation</h2>
+
+<p>전역변수 형태로 정의되어 있는 <code class="highlighter-rouge">heapTable@0x0804A900</code>와 <code class="highlighter-rouge">chunkCntTable@0x0804A904</code>와 <code class="highlighter-rouge">idxCnt@0x0804A940</code>가 Heap Management를 수행하는데 사용된다. <code class="highlighter-rouge">heapTable</code>의 경우 4096(0x1000)byte만큼 할당되는 메모리 블록들의 포인터 배열이며, 각각의 메모리 블록들은 256(0x100)byte 단위(<strong>chunk</strong>라 하자)로 16등분되어 사용된다. 그리고 <code class="highlighter-rouge">chunkCntTable</code>은 앞에 선언된 <code class="highlighter-rouge">heapTable</code>에 존재하는 chunk의 개수를 저장하고 있다. 만약 16개가 넘는다면 out-of-memory 에러를 출력하도록 되어있다. <code class="highlighter-rouge">idxCnt</code>는 이후에 저장되는 ascii_art 혹은 comment 의 id값을 저장하기 위한 변수이다. 해당 바이너리에서 사용되는 구조체는 크게 2가지 유형이 있다.</p>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">struct</span> <span class="n">ascii_art</span> <span class="p">{</span>
+  <span class="kt">char</span> <span class="n">type</span><span class="p">;</span> <span class="c1">// 0x49 : ascii_art
+</span>  <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
+  <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">filter_method</span><span class="p">)(</span><span class="kt">char</span> <span class="o">*</span> <span class="n">content</span><span class="p">);</span>
+  <span class="kt">char</span> <span class="n">content</span><span class="p">[</span><span class="mi">247</span><span class="p">];</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<div class="language-c highlighter-rouge"><pre class="highlight"><code><span class="k">struct</span> <span class="n">comment</span> <span class="p">{</span>
+  <span class="kt">char</span> <span class="n">type</span><span class="p">;</span> <span class="c1">// 0x37 : comment
+</span>  <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">comment</span><span class="p">[</span><span class="mi">251</span><span class="p">];</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>두 구조체의 크기는 256(0x100)byte로 동일하다. 즉, 메모리 블록내에 256byte 단위로 존재하는 chunk만큼 할당이 되는 것이다.</p>
+
+<h2 id="vulnerability">Vulnerability</h2>
+
+<p>취약점은 <code class="highlighter-rouge">addComment@0x08048CE3</code>함수에 존재한다. <code class="highlighter-rouge">addAsciiart@0x08048D8B</code>의 경우 <code class="highlighter-rouge">read()</code> 함수로 입력받을 때, 247byte 만큼만 받는다. 하지만, <code class="highlighter-rouge">addComment</code>의 경우 할당된 크기(251byte)보다 1byte 더 크게 입력 받는다. 즉, 여기서 <strong>Off-by-One</strong> 취약점이 발생한다. 이는 절묘하게도 다음 chunk의 <code class="highlighter-rouge">type</code>값을 덮어쓸 수 있고, 결국 <strong>Type Confusion</strong> 취약점으로 연계될 수 있다.</p>
+
+<h2 id="debugging">Debugging</h2>
+
+<p>(1) add ascii_art A1(0x804b008) - AAAA</p>
+
+<p>(2) add ascii_art A2(0x804b108) - BBBB</p>
+
+<p>(3) add comment(C1:0x804b208) to A1 - aaaa</p>
+
+<p>(4) add comment(C2:0x804b308) to A2 - bbbb</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ x/8wx 0x0804b008
+0x804b008:	0x00000149	0x048c2b00	0x41414108	0x00000a41
+0x804b018:	0x00000000	0x00000000	0x00000000	0x00000000
+gdb-peda$ x/8wx 0x0804b108
+0x804b108:	0x00000249	0x048c2b00	0x42424208	0x00000a42
+0x804b118:	0x00000000	0x00000000	0x00000000	0x00000000
+gdb-peda$ x/8wx 0x0804b208
+0x804b208:	0x00000137	0x61616100	0x00000a61	0x00000000
+0x804b218:	0x00000000	0x00000000	0x00000000	0x00000000
+gdb-peda$ x/8wx 0x0804b308
+0x804b308:	0x00000237	0x62626200	0x00000a62	0x00000000
+0x804b318:	0x00000000	0x00000000	0x00000000	0x00000000
+</code></pre>
+</div>
+
+<p>(5) add ascii_art A3(0x804b408) - CCCC (6) delete comment(C2:0x804b308)</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ x/8wx 0x0804b008
+0x804b008:	0x00000149	0x048c2b00	0x41414108	0x00000a41
+0x804b018:	0x00000000	0x00000000	0x00000000	0x00000000
+gdb-peda$ x/8wx 0x0804b108
+0x804b108:	0x00000249	0x048c2b00	0x42424208	0x00000a42
+0x804b118:	0x00000000	0x00000000	0x00000000	0x00000000
+gdb-peda$ x/8wx 0x0804b208
+0x804b208:	0x00000137	0x61616100	0x00000a61	0x00000000
+0x804b218:	0x00000000	0x00000000	0x00000000	0x00000000
+gdb-peda$ x/8wx 0x0804b308
+0x804b308:	0x00000200	0x62626200	0x00000a62	0x00000000
+0x804b318:	0x00000000	0x00000000	0x00000000	0x00000000
+gdb-peda$ x/8wx 0x0804b408
+0x804b408:	0x00000349	0x048c2b00	0x43434308	0x00000a43
+0x804b418:	0x00000000	0x00000000	0x00000000	0x00000000
+</code></pre>
+</div>
+
+<p>(7) add comment(C3:0x804b308) to A3 - cccc ; it will put in C2(0x804b308)</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ x/8wx 0x0804b008
+0x804b008:	0x00000149	0x048c2b00	0x41414108	0x00000a41
+0x804b018:	0x00000000	0x00000000	0x00000000	0x00000000
+gdb-peda$ x/8wx 0x0804b108
+0x804b108:	0x00000249	0x048c2b00	0x42424208	0x00000a42
+0x804b118:	0x00000000	0x00000000	0x00000000	0x00000000
+gdb-peda$ x/8wx 0x0804b208
+0x804b208:	0x00000137	0x61616100	0x00000a61	0x00000000
+0x804b218:	0x00000000	0x00000000	0x00000000	0x00000000
+gdb-peda$ x/8wx 0x0804b308
+0x804b308:	0x00000337	0x63636300	0x00000a63	0x00000000
+0x804b318:	0x00000000	0x00000000	0x00000000	0x00000000
+gdb-peda$ x/8wx 0x0804b408
+0x804b408:	0x00000349	0x048c2b00	0x43434308	0x00000a43
+0x804b418:	0x00000000	0x00000000	0x00000000	0x00000000
+</code></pre>
+</div>
+
+<p>(8) delete comment(C1:0x0804b208)</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ x/8wx 0x0804b008
+0x804b008:	0x00000149	0x048c2b00	0x41414108	0x00000a41
+0x804b018:	0x00000000	0x00000000	0x00000000	0x00000000
+gdb-peda$ x/8wx 0x0804b108
+0x804b108:	0x00000249	0x048c2b00	0x42424208	0x00000a42
+0x804b118:	0x00000000	0x00000000	0x00000000	0x00000000
+gdb-peda$ x/8wx 0x0804b208
+0x804b208:	0x00000100	0x61616100	0x00000a61	0x00000000
+0x804b218:	0x00000000	0x00000000	0x00000000	0x00000000
+gdb-peda$ x/8wx 0x0804b308
+0x804b308:	0x00000337	0x63636300	0x00000a63	0x00000000
+0x804b318:	0x00000000	0x00000000	0x00000000	0x00000000
+gdb-peda$ x/8wx 0x0804b408
+0x804b408:	0x00000349	0x048c2b00	0x43434308	0x00000a43
+0x804b418:	0x00000000	0x00000000	0x00000000	0x00000000
+</code></pre>
+</div>
+
+<p>(9) add comment(C2) to A2 - “b”*0xfb + “\x49” ; it will put in C1(0x0804b208) and overwrite C3(0x804b308)</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>gdb-peda$ x/8wx 0x0804b008
+0x804b008:	0x00000149	0x048c2b00	0x41414108	0x00000a41
+0x804b018:	0x00000000	0x00000000	0x00000000	0x00000000
+gdb-peda$ x/8wx 0x0804b108
+0x804b108:	0x00000249	0x048c2b00	0x42424208	0x00000a42
+0x804b118:	0x00000000	0x00000000	0x00000000	0x00000000
+gdb-peda$ x/8wx 0x0804b208
+0x804b208:	0x00000237	0x62626200	0x62626262	0x62626262
+0x804b218:	0x62626262	0x62626262	0x62626262	0x62626262
+gdb-peda$ x/8wx 0x0804b308
+0x804b308:	0x00000349	0x63636300	0x00000a63	0x00000000
+0x804b318:	0x00000000	0x00000000	0x00000000	0x00000000
+gdb-peda$ x/8wx 0x0804b408
+0x804b408:	0x00000349	0x048c2b00	0x43434308	0x00000a43
+0x804b418:	0x00000000	0x00000000	0x00000000	0x00000000
+
+gdb-peda$ x/65wx 0x0804b208
+0x804b208:	0x00000237	0x62626200	0x62626262	0x62626262
+0x804b218:	0x62626262	0x62626262	0x62626262	0x62626262
+0x804b228:	0x62626262	0x62626262	0x62626262	0x62626262
+0x804b238:	0x62626262	0x62626262	0x62626262	0x62626262
+0x804b248:	0x62626262	0x62626262	0x62626262	0x62626262
+0x804b258:	0x62626262	0x62626262	0x62626262	0x62626262
+0x804b268:	0x62626262	0x62626262	0x62626262	0x62626262
+0x804b278:	0x62626262	0x62626262	0x62626262	0x62626262
+0x804b288:	0x62626262	0x62626262	0x62626262	0x62626262
+0x804b298:	0x62626262	0x62626262	0x62626262	0x62626262
+0x804b2a8:	0x62626262	0x62626262	0x62626262	0x62626262
+0x804b2b8:	0x62626262	0x62626262	0x62626262	0x62626262
+0x804b2c8:	0x62626262	0x62626262	0x62626262	0x62626262
+0x804b2d8:	0x62626262	0x62626262	0x62626262	0x62626262
+0x804b2e8:	0x62626262	0x62626262	0x62626262	0x62626262
+0x804b2f8:	0x62626262	0x62626262	0x62626262	0x62626262
+0x804b308:	0x00000349
+</code></pre>
+</div>
+
+<h2 id="eip-control">EIP Control</h2>
+
+<p>실행흐름을 바꾸기 위해서는 여러가지 방법이 존재하지만 여기서는 고맙게도 함수 포인터(Function Pointer)가 존재한다. <img src="http://localhost:4000/assets/image/2016-12-07/function_ptr.png" alt="function_ptr" /> 심지어 인자 값까지 컨트롤 가능하므로 완벽한 취약점 조건이 된다.</p>
+
+<h2 id="constructing-an-information-leak">Constructing an Information Leak</h2>
+
+<p>TBA</p>
+
+<h2 id="reference">Reference</h2>
+
+<p>https://kitctf.de/writeups/31c3-ctf/mynx/<br />
+http://blog.dragonsector.pl/2015/01/31c3-ctf-mynx-pwn-30.html</p>
+
+</div>
+
+<div class="related">
+  <h2>Related Posts</h2>
+  <ul class="related-posts">
+    
+      <li>
+        <h3>
+          <a href="/web/2016/12/09/SQL-Injection-Out-of-band/">
+            SQL Injection - Out of band
+            <small>09 Dec 2016</small>
+          </a>
+        </h3>
+      </li>
+    
+      <li>
+        <h3>
+          <a href="/jekyll/2014/01/02/introducing-lanyon/">
+            Introducing Lanyon
+            <small>02 Jan 2014</small>
+          </a>
+        </h3>
+      </li>
+    
+      <li>
+        <h3>
+          <a href="/jekyll/2014/01/01/example-content/">
+            Example content
+            <small>01 Jan 2014</small>
+          </a>
+        </h3>
+      </li>
+    
+  </ul>
+</div>
+
+      </div>
+    </div>
+
+    <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+
+    <script>
+      (function(document) {
+        var toggle = document.querySelector('.sidebar-toggle');
+        var sidebar = document.querySelector('#sidebar');
+        var checkbox = document.querySelector('#sidebar-checkbox');
+
+        document.addEventListener('click', function(e) {
+          var target = e.target;
+
+          if(!checkbox.checked ||
+             sidebar.contains(target) ||
+             (target === checkbox || target === toggle)) return;
+
+          checkbox.checked = false;
+        }, false);
+      })(document);
+    </script>
+  </body>
+</html>
