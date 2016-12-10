@@ -1,0 +1,55 @@
+# Setup
+title:               Shall we play a game?
+tagline:             pwncake's blog
+description:         'A passionate <strong>developer and hacker group</strong>, cumchuk cumchuk.'
+url:                 http://lanyon.getpoole.com
+baseurl:             ''
+paginate:            5
+paginate_path: '/blog/page:num'
+sass:
+  style: compressed
+  sass_dir: _scss
+
+# Permalinks
+#
+# Use of `relative_permalinks` ensures post links from the index work properly.
+permalink:           pretty
+
+
+# About/contact
+author:
+  name:              pwncake
+  contact:
+    linkedin:  https://www.linkedin.com/in/pwncake
+    github:    https://github.com/pwncake
+    # facebook:  <hide>
+    twitter:   https://twitter.com/pwncake
+    email:     pwncake.io@gmail.com        
+
+version: 1.0.0
+
+# Navigation (2nd level links supported)
+nav:
+  Home:           
+    - '/'
+  About:          
+    - '/about/'
+  Blog:           
+    - '/blog/'
+    - { Categories: '/blog/categories/' }
+    - { Tags: '/blog/tags/' }
+  Github Project: 
+    - 'https://github.com/develacker'
+
+# Where are tags and categories displayed
+tag_page: '/blog/tags/'
+category_page: '/blog/categories/'
+
+hero:
+  image: /public/img/luffy.jpg
+  caption: Original Artwork &copy; <a href="http://www.picswalls.com/pic/one-piece-wallpapers/">One Piece</a>
+
+# Gems
+gems:
+  - jekyll-paginate
+  - jekyll-gist
