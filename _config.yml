@@ -39,7 +39,7 @@ nav:
     - { Categories: '/blog/categories/' }
     - { Tags: '/blog/tags/' }
   Github Project: 
-    - 'https://github.com/develacker'
+    - 'https://github.com/pwncake'
 
 # Where are tags and categories displayed
 tag_page: '/blog/tags/'
