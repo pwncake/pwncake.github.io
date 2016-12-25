@@ -154,6 +154,7 @@ ERROR 1242 (21000): Subquery returns more than 1 row
 
 * 단일 행 서브 쿼리
 서브 쿼리에서 여러 행이 검색되는 쿼리문.
+
 ```SQL
 mysql> select 1;
 +---+
@@ -162,8 +163,10 @@ mysql> select 1;
 | 1 |
 +---+
 ```
+
 * 다중 행 서브 쿼리
 서브 쿼리에서 여러 행이 검색되는 쿼리문.
+
 ```SQL
 mysql> select name from one;
 +------+
